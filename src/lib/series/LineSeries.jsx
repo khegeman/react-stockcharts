@@ -55,7 +55,7 @@ class LineSeries extends Component {
 		}
 	}
 	drawOnCanvas(ctx, moreProps) {
-		var { yAccessor, stroke, strokeWidth, hoverStrokeWidth, defined, connectNulls, strokeDasharray } = this.props;
+		var { yAccessor, stroke, strokeWidth, hoverStrokeWidth, defined, connectNulls, strokeDasharray, step } = this.props;
 		var { xAccessor } = moreProps;
 
 		var { xScale, chartConfig: { yScale }, plotData, hovering } = moreProps;
@@ -73,12 +73,12 @@ class LineSeries extends Component {
 
 				points.push([x, y]);
 			} else if (points.length) {
-				segment(points, ctx);
+				segment(points, ctx, step);
 				points = connectNulls ? points : [];
 			}
 		}
 
-		if (points.length) segment(points, ctx);
+		if (points.length) segment(points, ctx, step);
 	}
 	renderSVG(moreProps) {
 		var { yAccessor, stroke, strokeWidth, hoverStrokeWidth, defined, strokeDasharray } = this.props;
@@ -116,14 +116,19 @@ class LineSeries extends Component {
 			/>;
 	}
 }
-function segment(points, ctx) {
+function segment(points, ctx, step) {
 	ctx.beginPath();
 
 	let [x, y] = first(points);
 	ctx.moveTo(x, y);
+	let lasty = step ? y : null;;
 	for (let i = 1; i < points.length; i++) {
 		let [x1, y1] = points[i];
+		if (lasty) {
+			ctx.lineTo(x1, lasty);
+		}
 		ctx.lineTo(x1, y1);
+		lasty = step ? y1 : null;
 	}
 
 	ctx.stroke();
@@ -144,6 +149,7 @@ LineSeries.propTypes = {
 	onContextMenu: PropTypes.func,
 	yAccessor: PropTypes.func,
 	connectNulls: PropTypes.bool,
+	step: PropTypes.bool,
 };
 
 LineSeries.defaultProps = {
@@ -160,6 +166,7 @@ LineSeries.defaultProps = {
 	onClick: function(e) { console.log("Click", e); },
 	onDoubleClick: function(e) { console.log("Double Click", e); },
 	onContextMenu: function(e) { console.log("Right Click", e); },
+	step: false,
 };
 
 export default LineSeries;
